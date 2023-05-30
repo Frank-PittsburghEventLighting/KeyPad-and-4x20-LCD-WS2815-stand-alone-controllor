@@ -1,0 +1,1111 @@
+//  Rev. B_1  March 25,2023
+// Changes are marked with FG, Mostly pin # changes for ease of wiring
+
+String keyP ="";
+int KeyFG = 0, x=0;
+char key2, key;
+int RBright, BBright, GBright, GreenVal, RedVal, BlueVal;
+int convKeyP=11; int SpeedRate;
+int button1, button2, button3, button4;
+int brightness, brightnessRate, Speed;
+#include <Keypad.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <FastLED.h>
+
+#define buttonPin1 2
+#define buttonPin2 3
+#define buttonPin3 4
+#define buttonPin4 5
+
+// LED setup
+#define MASTER_BRIGHTNESS 100 // Set the master brigtness value [should be greater then min_brightness value].
+#define MASTER_Speed 100 // Adjusted for +0 Offset
+
+#define MASTER_RED 255
+#define MASTER_GREEN 255
+#define MASTER_BLUE 255
+#define LED_PIN 6 // First data out pin for WS2815 FG
+#define NUM_LEDS 60
+#define BRIGHTNESS 100
+#define LED_TYPE WS2813 // WS2815 not in FastLED, could use WS2812b instead FG
+#define COLOR_ORDER GRB
+
+// ********* Start define Pallets *********
+CRGBPalette16 currentPalette;
+CRGBPalette32 currentPalette32;
+TBlendType currentBlending;
+
+extern CRGBPalette16 myRedBluePalette;
+extern const TProgmemPalette16 myRedBluePalette_p PROGMEM;
+extern CRGBPalette16 RWBPalette;
+extern const TProgmemPalette16 RWB_p PROGMEM;
+extern CRGBPalette16 Irish;
+extern const TProgmemPalette16 Irish_p PROGMEM;
+
+extern CRGBPalette32 Ocean;
+extern const TProgmemPalette32 Ocean_p PROGMEM;
+extern CRGBPalette32 FireFG;
+extern const TProgmemPalette32 FireFG_p PROGMEM;
+
+CRGB leds[NUM_LEDS];
+
+// Keyboard setup
+const byte ROWS = 4;
+const byte COLS = 3;
+char keys[ROWS][COLS] = {
+{'1', '2', '3'},
+{'4', '5', '6'},
+{'7', '8', '9'},
+{'*', '0', '#'}
+};
+byte rowPins[ROWS] = {A0,A1,A2,A3}; // Why are using anolog pins?? FG
+byte colPins[COLS] = {11,12,13}; // Switched from D0,1,13 for ease of wiring
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+// LCD setup
+LiquidCrystal_I2C lcd(0x27,20,4); // set the LCD address to 0x27 for a 20 chars and 4 line display // edited comment 20 by 4 LCD FG
+
+void setup() {
+lcd.init();
+// Print a message to the LCD.
+lcd.backlight();
+pinMode (buttonPin1, INPUT_PULLUP);
+pinMode (buttonPin2, INPUT_PULLUP);
+pinMode (buttonPin3, INPUT_PULLUP);
+pinMode (buttonPin4, INPUT_PULLUP); delay(10);
+FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+delay(10);
+FastLED.setBrightness(BRIGHTNESS);
+delay(100);
+lcd.print(" WELCOME "); delay(100);
+lcd.setCursor(0,1);
+lcd.print(" FAST LED DISPLAY ");
+Wire.begin(); // Initialize I2C communication
+delay(10);
+}
+
+void loop() {
+while (true){
+x=0;
+if ((key) && (key != '#')) {
+keyP = keyP + key;
+lcd.setCursor(0,0);
+lcd.print((String)"Pattern: "+keyP+" ");
+}
+else if (key == '#'){
+convKeyP = keyP.toInt();
+keyP = "";
+break;
+}
+key = keypad.getKey();
+}
+
+while (true){
+key = keypad.getKey(); // wait for you to input a pattern number,
+LoopFLed();
+speedAndBrightnessControl();
+if ((key) && (key != '#')){ // Don't understand ?? # should Enter/Go key * should be stop/clear key FG
+lcd.clear();
+break;
+}
+}
+
+}
+void LoopFLed(){
+// Preset Fills
+
+if( convKeyP == 1) {
+fill_solid( leds, NUM_LEDS, CRGB::Red);
+displayPattern(convKeyP,"Red","Fill solid Red");
+}
+if( convKeyP == 2) {
+fill_solid( leds, NUM_LEDS, CRGB::Blue);
+displayPattern(convKeyP,"Blue","Fill solid Blue");
+}
+if( convKeyP == 3) {
+fill_solid( leds, NUM_LEDS, CRGB::Orange);
+displayPattern(convKeyP,"Orange","Fill solid Orange");
+}
+else if( convKeyP == 4) {
+fill_solid( leds, NUM_LEDS, CRGB(0xFFFF20));
+displayPattern(convKeyP,"pattern name","Description");
+}
+else if( convKeyP == 5) {
+fill_solid( leds, NUM_LEDS, CRGB::Green);
+displayPattern(convKeyP,"Green","Fill solid Orange");
+}
+else if( convKeyP == 6) {
+fill_solid( leds, NUM_LEDS, CRGB::Cyan);
+displayPattern(convKeyP,"Cyan","Fill solid Cyan");
+}
+
+else if( convKeyP == 7) {
+displayPattern(convKeyP,"Purple","Fill solid Purple");
+fill_solid( leds, NUM_LEDS, CRGB::Purple);
+}
+else if( convKeyP == 8) {
+fill_solid( leds, NUM_LEDS, CRGB(0xFF1040));
+displayPattern(convKeyP,"pattern name","Description");
+}
+
+else if (convKeyP == 9) {
+displayPattern(convKeyP,"Solid White","Displays White");
+for (int i = 0; i < NUM_LEDS; i++) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear();loop();
+}
+leds[i] = CRGB::White;
+}
+FastLED.show();
+}
+else if (convKeyP == 10) {
+displayPattern(convKeyP,"Solid Black","Displays Black");
+for (int i = 0; i < NUM_LEDS; i++) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[i] = CRGB::Black;
+}
+FastLED.show();
+}
+else if (convKeyP ==11) {
+displayPattern(convKeyP,"Solid Yellow","Displays Yellow");
+for (int i = 0; i < NUM_LEDS; i++) {
+leds[i] = CRGB::Yellow;
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+}
+FastLED.show();
+
+}
+
+else if (convKeyP == 12) {
+displayPattern(convKeyP,"Purple","ColourWipe");
+for (int i = 0; i < NUM_LEDS; i++) {
+leds[i] = CRGB::Purple;
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+}
+FastLED.show();
+}
+else if (convKeyP == 13) {
+displayPattern(convKeyP,"Red and Green","Colour Display");
+for (int i = 0; i < NUM_LEDS; i++) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+if (i % 2 == 0) {
+leds[i] = CRGB::Red;
+}
+else {
+leds[i] = CRGB::Green;
+}
+}
+FastLED.show();
+
+}
+else if (convKeyP == 14) {
+displayPattern(convKeyP,"White&Black","Colour Display");
+for (int i = 0; i < NUM_LEDS; i++) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[i] = CRGB::White;
+FastLED.show();
+delay(50);
+}
+for (int i = NUM_LEDS - 1; i >= 0; i--) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[i] = CRGB::Black;
+FastLED.show();
+delay(50);
+}
+}
+else if (convKeyP == 15) {
+displayPattern(convKeyP,"Bouncing Ball","Colours Bounce");
+for (int i = 0; i < NUM_LEDS; i++) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[i] = CRGB::White;
+FastLED.show();
+delay(20);
+leds[i] = CRGB::Black;
+FastLED.show();
+delay(20);
+}
+for (int i = NUM_LEDS - 1; i >= 0; i--) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[i] = CRGB::White;
+FastLED.show();
+delay(20);
+leds[i] = CRGB::Black;
+FastLED.show();
+delay(20);
+}
+}
+else if (convKeyP == 16) {
+displayPattern(convKeyP,"Wave on/off","Colour wave");
+for (int i = 0; i < NUM_LEDS; i++) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[i] = CRGB::White;
+FastLED.show();
+delay(20);
+}
+for (int i = NUM_LEDS - 1; i >= 0; i--) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[i] = CRGB::Black;
+FastLED.show();
+delay(20);
+}
+}
+else if( convKeyP == 17) //displays rgb and allows three (3) potentiometers to set the brightness of each colour
+{
+if (x<2){
+p:
+while (true){
+lcd.setCursor(0,2);
+lcd.print((String)"input Red Brightness:");
+key = keypad.getKey();
+if ((key) && (key != '#')) {
+keyP = keyP + key;
+lcd.setCursor(0,3);
+lcd.print((String)" "+keyP+" ");
+}
+else if (key == '#'){
+RBright = keyP.toInt();
+keyP = "";
+lcd.clear();
+lcd.setCursor(0,0);
+lcd.print((String)"RB:"+RBright);
+break;
+}
+}
+delay(50);
+while (true){
+lcd.setCursor(0,2);
+lcd.print((String)"input Green Brightness:");
+key = keypad.getKey();
+if ((key) && (key != '#')) {
+keyP = keyP + key;
+lcd.setCursor(0,3);
+lcd.print((String)" "+keyP+" ");
+}
+else if (key == '#'){
+GBright = keyP.toInt();
+keyP = "";
+lcd.clear();
+lcd.setCursor(0,0);
+lcd.print((String)"RB:"+RBright+"GB:"+GBright);
+break;
+}
+}
+delay(50);
+while (true){
+lcd.setCursor(0,2);
+lcd.print((String)"input Blue Brightness:");
+key = keypad.getKey();
+if ((key) && (key != '#')) {
+keyP = keyP + key;
+lcd.setCursor(0,3);
+lcd.print((String)" "+keyP+" ");
+}
+else if (key == '#'){
+BBright = keyP.toInt();
+keyP = "";
+lcd.setCursor(0,0);
+lcd.print((String)"BB:"+BBright);
+break;
+}
+}
+if (GBright >0 && GBright <=255){
+GreenVal = GBright;
+}
+if (RBright >0 && RBright <=255){
+RedVal = RBright;
+}
+if (BBright >0 && BBright <=255){
+BlueVal = BBright;
+}
+else { lcd.setCursor(0,3); lcd.print(" INVALID INPUT "); delay(2000); lcd.clear();
+goto p;
+}
+x=3;
+}
+lcd.clear();
+displayPattern(convKeyP,"RGB display","Disp RGB");
+for (int i = 0; i < NUM_LEDS; i++) {
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[i] = CRGB(RedVal, GreenVal, BlueVal); // Out to FastLED
+}
+}
+
+//Presets
+else if( convKeyP == 18) //J LEFT
+{ currentPalette = RainbowStripeColors_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+displayPattern(convKeyP,"Rainbow Stripes","No blend left");
+
+}
+else if( convKeyP == 19) //K
+{
+currentPalette = CloudColors_p; currentBlending = LINEARBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed /
+FillLEDsFromPaletteColors( startIndex);
+displayPattern(convKeyP,"Cloud colours","No blend cloud");
+}
+else if( convKeyP == 20) //I RIGHT
+{
+currentPalette = RainbowStripeColors_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex - 1; / motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+displayPattern(convKeyP,"Rainbow Stripes","No blend right");
+}
+
+// ******************* KeyPad #2 *********************************
+
+// Chase Functions
+else if( convKeyP == 21) //A
+{ currentPalette = RainbowColors_p; currentBlending = LINEARBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+displayPattern(convKeyP,"Rainbow Colours","Blend Rainbows");
+
+}
+else if( convKeyP == 22) //C
+{
+currentPalette = ForestColors_p; currentBlending = LINEARBLEND;
+
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+displayPattern(convKeyP,"Forest Colors","Linear Blend");
+
+}
+// Different Functions
+else if( convKeyP == 23) //E Gilter Rainbow
+{
+displayPattern(convKeyP,"White","Sparkles White");
+static uint8_t gHue = 0;
+gHue = gHue + 2; /* motion speed */
+// Call the current pattern function once, updating the 'leds' array
+
+fill_rainbow( leds, NUM_LEDS, gHue, 4); //4 is a good Size(LEDs+=0)
+{ if( random8() < 120) //Good Amount of sparkles
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[ random16(NUM_LEDS) ] += CRGB::White;}
+{ if( random8() < 120)
+key = keypad.getKey(); speedAndBrightnessControl();
+if ((key) && (key != '#')) {
+lcd.clear(); loop();}
+leds[ random16(NUM_LEDS) ] += CRGB::White;}
+// send the 'leds' array out to the actual LED strip
+}
+else if( convKeyP == 24) //F
+// random colored speckles that blink in and fade smoothly Popcorn
+{
+static uint8_t gHue = 0;
+gHue = gHue + 1; /* motion speed */
+// Call the current pattern function once, updating the 'leds' array
+
+fadeToBlackBy( leds, NUM_LEDS, 10); //(good fade #)
+int pos = random8(NUM_LEDS);
+leds[pos] += CHSV( gHue + random8(255), 255, 255);
+int pos2 = random8(NUM_LEDS);
+leds[pos2] += CHSV( gHue + random8(255), 255, 255); // Good 2*Times the dots
+displayPattern(convKeyP,"Fade","Fade colours");
+
+}
+else if( convKeyP == 25) //G
+// a colored dot sweeping back and forth, with fading trails
+{
+displayPattern(convKeyP,"Fade to Black","Sweep back and forth");
+static uint8_t gHue = 0;
+gHue = gHue + 1; /* motion speed */
+// Call the current pattern function once, updating the 'leds' array
+fadeToBlackBy( leds, NUM_LEDS, 20);
+int pos = beatsin16( 6, 0, NUM_LEDS-1 ); // 6 is Good
+leds[pos] += CHSV( gHue, random8(255), 255);
+
+}
+
+else if( convKeyP == 26) //H
+// Spew Tape Ticker Good Tweaked all parameters!!
+{
+displayPattern(convKeyP,"Spew ticker","Spew tape ticker");
+static uint8_t gHue = 0;
+gHue = gHue - 30; /* motion speed */
+const uint16_t spewSpeed = 200; // rate of advance
+static boolean spewing = 0; // pixels are On(1) or Off(0)
+static uint8_t count = 1; // how many to light (or not light)
+static uint8_t temp = count;
+static uint8_t hue = random8();
+
+EVERY_N_MILLISECONDS(spewSpeed){
+
+if (count == 0) {
+spewing = !spewing;
+if (spewing == 1) { count = random8(1,9); } // random number for On pixels
+else { count = random8(2,4); } // random number for Off pixels
+temp = count;
+hue = random8();
+}
+for (uint8_t i = NUM_LEDS-1; i > 0; i--) {
+leds[i] = leds[i-1]; // shift data down the line by one pixel
+}
+if (spewing == 1) { // new pixels are On
+if (temp == count) {
+leds[0] = CHSV(hue-5, 215, 255); // for first dot
+leds[1] = CHSV(hue-5, 215, 255); // for second dot
+leds[2] = CHSV(hue-5, 215, 255); // for third dot
+leds[3] = CHSV(hue-5, 215, 255); // for forth dot
+leds[4] = CHSV(hue-5, 215, 255); // for fifth dot
+} else {
+leds[0] = CHSV(hue, 255, 255/(1+((temp-count)*2)) ); // for following dots
+
+}
+} else { // new pixels are Off
+leds[0] = CHSV(0,0,0); // set pixel 0 to black
+}
+
+count = count - 1; // reduce count by one.
+}//end every_n
+
+// End Tape Ticker
+}
+
+chasisToInsert(); ////////////LOCATE THIS FUNCTION TO INPUT DESIRED PATTERN FROM 40-99
+
+}
+
+void FillLEDsFromPaletteColors( uint8_t colorIndex) // Load 16 Color palette
+{
+// uint8_t brightness = 255;
+// Loads color palette
+for( int i = 0; i < NUM_LEDS; i++) {
+// key = keypad.getKey(); speedAndBrightnessControl();
+// if ((key) && (key != '#')) {
+// lcd.clear(); loop();}
+leds[i] = ColorFromPalette( currentPalette, colorIndex, MASTER_BRIGHTNESS, currentBlending);
+colorIndex += 3;
+}
+}
+void FillLEDsFromPaletteColors32( uint8_t colorIndex) // Load 32 Color palette
+{
+// uint8_t brightness = 255;
+// Loads color palette(?)
+for( int i = 0; i < NUM_LEDS; i++) {
+// key = keypad.getKey(); speedAndBrightnessControl();
+// if ((key) && (key != '#')) {
+// lcd.clear(); loop();}
+leds[i] = ColorFromPalette( currentPalette32, colorIndex, MASTER_BRIGHTNESS, currentBlending);
+colorIndex += 1;
+}
+}
+
+void speedAndBrightnessControl(){
+// ********** Brightness Control **********
+button1 = digitalRead (buttonPin1);
+button2 = digitalRead (buttonPin2);
+if (button1 == LOW){
+brightness--;
+if (brightness >=255){brightness=255;}
+}
+else if (button2 == LOW){
+brightness++;
+if (brightness <0){brightness=0;}
+}
+brightnessRate = map(brightness,0,255,0,100);
+delay(10);
+FastLED.setBrightness(brightness); // Set master brightness based on potentiometer position.
+
+// Serial.print(" Bright ");
+// Serial.print(brightness);
+// Serial.println(" ");
+// ********* END Brightness Control ***********
+
+// ********* SPEED ***********
+
+button3 = digitalRead (buttonPin3);
+button4 = digitalRead (buttonPin4);
+if (button3 == LOW){
+SpeedRate++;
+if (SpeedRate >=500){SpeedRate=500;}
+}
+else if (button4 == LOW){
+SpeedRate--;
+if (SpeedRate <0 ){SpeedRate=0;}
+}
+Speed = map(SpeedRate,0,500,0,100);
+delay(10);
+FastLED.delay(SpeedRate);
+FastLED.show(); //Goto LoopFLed2 better responce
+}
+void displayPattern(int numb,const char* patternName, const char* description)
+{
+lcd.setCursor(0, 0);
+lcd.print((String)"Pattern: "+numb+"");
+lcd.setCursor(0, 1);
+lcd.print((String)"Name: "+patternName+"");
+lcd.setCursor(0, 2);
+lcd.print((String)"Desc:"+description+"");
+lcd.setCursor(0,3);
+lcd.print((String)"Btns:"+brightnessRate+" Spd:"+Speed);
+}
+
+void chasisToInsert(){
+if( convKeyP == 27) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 28) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 29) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 30) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 31) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 32) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 33) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 34) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 35) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 36) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 37) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 38) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 39) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 40) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 41) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 42) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 43) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 44) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 45) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 46) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 47) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 48) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 49) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 50) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 51) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 52) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 53) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 54) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 55) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 56) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 57) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 58) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 59) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 60) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 61) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 62) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 63) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 64) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 65) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 66) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 67) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 68) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 69) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 70) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 71) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 72) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 73) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 74) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 75) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 76) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 77) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 78) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 79) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 80) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 81) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 82) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 83) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 84) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 85) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 86) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 87) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 88) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 89) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 90) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 91) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 92) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 93) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 94) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 95) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 96) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 97) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 98) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+else if( convKeyP == 99) //L
+{
+//////////////PASS THE CHASE STYLE AND PATTERN HERE**//////////////
+displayPattern(convKeyP,"pass pattern name","pattern description");
+}
+
+}
+
+// ***** Extrenal Paletts ******** Added Paletts FG
+// ***** Palette 16 *****
+const TProgmemRGBPalette16 myRedBluePalette_p PROGMEM =
+{
+CRGB::Red,
+CRGB::Blue,
+CRGB::Red,
+CRGB::Blue,
+
+CRGB::Red,
+CRGB::Blue,
+CRGB::Red,
+CRGB::Blue,
+
+CRGB::Red,
+CRGB::Blue,
+CRGB::Red,
+CRGB::Blue,
+
+CRGB::Red,
+CRGB::Blue,
+CRGB::Red,
+CRGB::Blue,
+};
+
+// ***** Palette 16 *****
+const TProgmemRGBPalette16 RWB_p PROGMEM =
+{
+CRGB::Blue,
+CRGB::Red,
+CRGB::White,
+CRGB::Blue,
+
+CRGB::Red,
+CRGB::White,
+CRGB::Blue,
+CRGB::Red,
+
+CRGB::White,
+CRGB::Blue,
+CRGB::Red,
+CRGB::White,
+
+CRGB::Red,
+CRGB::Red,
+CRGB::White,
+CRGB::Blue,
+};
+
+// ***** Palette 16 *****
+const TProgmemRGBPalette16 Irish_p PROGMEM =
+{
+CRGB::Green,
+CRGB::Green,
+CRGB::OrangeRed,
+CRGB::Green,
+
+CRGB::Green,
+CRGB::Green,
+CRGB::OrangeRed,
+CRGB::Green,
+
+CRGB::Green,
+CRGB::Green,
+CRGB::OrangeRed,
+CRGB::Green,
+
+CRGB::Green,
+CRGB::Green,
+CRGB::OrangeRed,
+CRGB::Green,
+};
+
+// ***** Palette 32 *****
+const TProgmemRGBPalette32 FireFG_p FL_PROGMEM =
+{
+0x990066, // XXXXX
+CRGB::Maroon,
+CRGB::Crimson,
+CRGB::OrangeRed,
+
+CRGB::DarkRed,
+0xDF2800, // Ferrari
+CRGB::DarkRed,
+CRGB::DarkOrange,
+
+CRGB::Tomato,
+CRGB::DarkRed,
+CRGB::Red,
+CRGB::Orange,
+
+CRGB::White,
+CRGB::Yellow,
+CRGB::Gold,
+CRGB::DarkRed,
+
+CRGB::OrangeRed,
+0xDF2800, // Ferrari
+CRGB::Black,
+CRGB::Red,
+
+CRGB::DarkRed,
+CRGB::Gold,
+0xE0115F, //Ruby
+CRGB::Red,
+
+CRGB::DarkRed,
+CRGB::DarkOrange,
+CRGB::OrangeRed,
+CRGB::Orange,
+
+CRGB::White,
+CRGB::Orange,
+CRGB::Red,
+CRGB::DarkRed,
+};
+
+// ***** Palette 32 *****
+const TProgmemRGBPalette32 Ocean_p PROGMEM =
+{
+CRGB::MidnightBlue,
+CRGB::DarkBlue,
+CRGB::Teal,
+CRGB::Navy,
+
+CRGB::DarkBlue,
+CRGB::Blue,
+CRGB::SeaGreen,
+CRGB::DarkGreen,
+
+CRGB::CadetBlue,
+CRGB::Blue,
+CRGB::DarkCyan,
+CRGB::OliveDrab,
+
+CRGB::MediumSeaGreen,
+CRGB::Aqua,
+CRGB::SeaGreen,
+CRGB::DarkSeaGreen,
+
+CRGB::LimeGreen,
+CRGB::DarkTurquoise,
+CRGB::Aqua,
+CRGB::Blue,
+
+CRGB::DarkBlue,
+CRGB::MediumBlue,
+CRGB::SeaGreen,
+CRGB::Teal,
+
+CRGB::CadetBlue,
+CRGB::Blue,
+CRGB::DarkCyan,
+CRGB::DarkSlateBlue,
+
+CRGB::Violet,
+CRGB::MediumPurple,
+CRGB::Indigo,
+CRGB::Purple,
+};
+// ***** END ALL *****
+
