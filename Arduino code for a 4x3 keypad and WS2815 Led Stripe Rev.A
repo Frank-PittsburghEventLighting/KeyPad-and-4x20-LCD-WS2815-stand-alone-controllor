@@ -1,0 +1,436 @@
+String keyP ="";
+int KeyFG = 0;
+char key2, key;
+int convKeyP; uint16_t SpeedRate;
+uint8_t brightness;
+#include <Keypad.h>
+#include <FastLED.h>
+
+// LED setup
+#define MASTER_BRIGHTNESS 100 // Set the master brightness value [should be greater than min_brightness value].
+#define MASTER_Speed 100 // Adjusted for +0 Offset
+
+#define MASTER_RED 255
+#define MASTER_GREEN 255
+#define MASTER_BLUE 255
+#define LED_PIN 6
+#define NUM_LEDS 60
+#define BRIGHTNESS 100
+#define LED_TYPE WS2812B
+#define COLOR_ORDER GRB
+
+// ********* Start define Pallets *********
+CRGBPalette16 currentPalette;
+CRGBPalette32 currentPalette32;
+TBlendType currentBlending;
+
+extern CRGBPalette16 myRedBluePalette;
+extern const TProgmemPalette16 myRedBluePalette_p PROGMEM;
+extern CRGBPalette16 RWBPalette;
+extern const TProgmemPalette16 RWB_p PROGMEM;
+extern CRGBPalette16 Irish;
+extern const TProgmemPalette16 Irish_p PROGMEM;
+
+extern CRGBPalette32 Ocean;
+extern const TProgmemPalette32 Ocean_p PROGMEM;
+extern CRGBPalette32 FireFG;
+extern const TProgmemPalette32 FireFG_p PROGMEM;
+
+CRGB leds[NUM_LEDS];
+
+// Keyboard setup
+const byte ROWS = 4;
+const byte COLS = 3;
+char keys[ROWS][COLS] = {
+{'1', '2', '3'},
+{'4', '5', '6'},
+{'7', '8', '9'},
+{'*', '0', '#'}
+};
+byte rowPins[ROWS] = {8, 7, 6, 5};
+byte colPins[COLS] = {4, 3, 2};
+Keypad keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+void setup() {
+FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+FastLED.setBrightness(BRIGHTNESS);
+}
+
+void loop() {
+key = keypad.getKey();
+if (key) {
+keyP = key;
+for (int i=0; i<50; i++){
+key2 = keypad.getKey();
+delay(10);
+}
+keyP = key + key2;
+convKeyP = keyP.toInt();
+}
+speedAndBrightnessControl();
+}
+void LoopFLed(){
+// Preset Fills
+if( convKeyP == 1) {
+fill_solid( leds, NUM_LEDS, CRGB::Red);
+}
+if( convKeyP == 2) {
+fill_solid( leds, NUM_LEDS, CRGB::Orange);
+}
+if( convKeyP == 3) { fill_solid( leds, NUM_LEDS, CRGB(0xFFFF20)); }
+if( convKeyP == 4) { fill_solid( leds, NUM_LEDS, CRGB::Green); }
+if( convKeyP == 5) { fill_solid( leds, NUM_LEDS, CRGB::Cyan); }
+if( convKeyP == 6) { fill_solid( leds, NUM_LEDS, CRGB::Blue); }
+if( convKeyP == 7) { fill_solid( leds, NUM_LEDS, CRGB::Purple); }
+if( convKeyP == 8) { fill_solid( leds, NUM_LEDS, CRGB(0xFF1040)); }
+
+if( convKeyP == 9) //displays rgb and allows three (3) potentiometers to set the brightness of each colour
+{
+uint8_t min_red = 1; // Set a minimum red level.
+uint8_t RedVal; // Mapped Red
+int potPinR = A1; // Pin A1 for potentiometer RED
+int potValR; // Variable to store potentiometer Red value
+
+  pinMode(potPinR, INPUT);  // Set pin as an input. 
+    potValR = analogRead(potPinR);  // Read potentiometer R (for Red).
+    RedVal = map(potValR, 1, 1023, min_red, MASTER_RED);
+
+uint8_t min_green = 1;   // Set a minimum green level.
+uint8_t GreenVal;            // Mapped Green
+int potPinG = A2;   // Pin A2 for potentiometer GREEN 
+int potValG;        // Variable to store potentiometer Green value 
+
+  pinMode(potPinG, INPUT);  // Set pin as an input. 
+    potValG = analogRead(potPinG);  // Read potentiometer G (for Green).
+    GreenVal = map(potValG, 1, 1023, min_green, MASTER_GREEN);
+
+uint8_t min_blue = 1;   // Set a minimum brightness level.
+uint8_t BlueVal;            // Mapped Blue
+int potPinB = A3;   // Pin A3 for potentiometer BLUE 
+int potValB;        // Variable to store potentiometer Red value 
+
+  pinMode(potPinB, INPUT);  // Set pin as an input. 
+    potValB = analogRead(potPinB);  // Read potentiometer B (for brightness).
+    BlueVal = map(potValB, 1, 1023, min_blue, MASTER_BLUE);
+
+
+for (int i = 0; i < NUM_LEDS; i++) {
+leds[i] = CRGB(RedVal, GreenVal, BlueVal);  // Out to FastLED
+}
+}
+
+//Presets
+if( convKeyP == 10)
+{
+currentPalette = RWB_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+// startIndex = startIndex + 1; /* motion speed */ //Remove Chase
+FillLEDsFromPaletteColors( startIndex);
+{ if( random8() < 120) //Good Amount of sparkles
+leds[ random16(NUM_LEDS) ] += CRGB::White;}
+{ if( random8() < 120)
+leds[ random16(NUM_LEDS) ] += CRGB::White;}
+
+}
+if( convKeyP == 11)
+{ currentPalette32 = FireFG_p; currentBlending = LINEARBLEND;
+
+static uint16_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+FillLEDsFromPaletteColors32( startIndex);
+
+ { if( random8() < 120)    //Good Amount of sparkles       
+leds[ random16(NUM_LEDS) ] += CRGB::White;}
+
+}
+if( convKeyP == 12)
+{
+currentPalette = Irish_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+FillLEDsFromPaletteColors( startIndex);
+
+}
+
+// ******************* KeyPad #2 *********************************
+
+// Chase Functions
+if( convKeyP == 13) //A
+{ currentPalette = RainbowColors_p; currentBlending = LINEARBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+
+}
+if( convKeyP == 14) //B
+{
+currentPalette = myRedBluePalette_p; currentBlending = NOBLEND; //Police
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+
+}
+if( convKeyP == 15) //C
+{
+currentPalette = ForestColors_p; currentBlending = LINEARBLEND;
+
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+
+}
+if( convKeyP == 16) //D
+{
+currentPalette = RWB_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+
+}
+// Different Functions
+if( convKeyP == 17) //E Gilter Rainbow
+{
+static uint8_t gHue = 0;
+gHue = gHue + 2; /* motion speed */
+// Call the current pattern function once, updating the 'leds' array
+
+fill_rainbow( leds, NUM_LEDS, gHue, 4); //4 is a good Size(LEDs+=0)
+{ if( random8() < 120) //Good Amount of sparkles
+leds[ random16(NUM_LEDS) ] += CRGB::White;}
+{ if( random8() < 120)
+leds[ random16(NUM_LEDS) ] += CRGB::White;}
+
+// send the 'leds' array out to the actual LED strip
+}
+if( convKeyP == 18) //F
+// random colored speckles that blink in and fade smoothly Popcorn
+{
+static uint8_t gHue = 0;
+gHue = gHue + 1; /* motion speed */
+// Call the current pattern function once, updating the 'leds' array
+
+fadeToBlackBy( leds, NUM_LEDS, 10); //(good fade #)
+int pos = random8(NUM_LEDS);
+leds[pos] += CHSV( gHue + random8(255), 255, 255);
+int pos2 = random8(NUM_LEDS);
+leds[pos2] += CHSV( gHue + random8(255), 255, 255); // Good 2*Times the dots
+
+}
+if( convKeyP == 19) //G
+// a colored dot sweeping back and forth, with fading trails
+{ static uint8_t gHue = 0;
+gHue = gHue + 1; /* motion speed */
+// Call the current pattern function once, updating the 'leds' array
+fadeToBlackBy( leds, NUM_LEDS, 20);
+int pos = beatsin16( 6, 0, NUM_LEDS-1 ); // 6 is Good
+leds[pos] += CHSV( gHue, random8(255), 255);
+
+}
+
+if( convKeyP == 20) //H
+// Spew Tape Ticker Good Tweaked all parameters!!
+{ static uint8_t gHue = 0;
+gHue = gHue - 30; /* motion speed */
+const uint16_t spewSpeed = 200; // rate of advance
+static boolean spewing = 0; // pixels are On(1) or Off(0)
+static uint8_t count = 1; // how many to light (or not light)
+static uint8_t temp = count;
+static uint8_t hue = random8();
+
+EVERY_N_MILLISECONDS(spewSpeed){
+
+if (count == 0) {
+spewing = !spewing;
+if (spewing == 1) { count = random8(1,9); } // random number for On pixels
+else { count = random8(2,4); } // random number for Off pixels
+temp = count;
+hue = random8();
+}
+for (uint8_t i = NUM_LEDS-1; i > 0; i--) {
+leds[i] = leds[i-1]; // shift data down the line by one pixel
+}
+if (spewing == 1) { // new pixels are On
+if (temp == count) {
+leds[0] = CHSV(hue-5, 215, 255); // for first dot
+leds[1] = CHSV(hue-5, 215, 255); // for second dot
+leds[2] = CHSV(hue-5, 215, 255); // for third dot
+leds[3] = CHSV(hue-5, 215, 255); // for forth dot
+leds[4] = CHSV(hue-5, 215, 255); // for fifth dot
+} else {
+leds[0] = CHSV(hue, 255, 255/(1+((temp-count)*2)) ); // for following dots
+
+}
+} else { // new pixels are Off
+leds[0] = CHSV(0,0,0); // set pixel 0 to black
+}
+
+count = count - 1; // reduce count by one.
+}//end every_n
+
+// End Tape Ticker
+}
+
+if( convKeyP == 21) //I RIGHT
+{ currentPalette = RainbowStripeColors_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex - 1; /* motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+
+}
+if( convKeyP == 22) //J LEFT
+{ currentPalette = RainbowStripeColors_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+
+FillLEDsFromPaletteColors( startIndex);
+
+}
+if( convKeyP == 23) //K
+{ currentPalette = CloudColors_p; currentBlending = LINEARBLEND;
+static uint8_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+FillLEDsFromPaletteColors( startIndex);
+
+}
+if( convKeyP == 24) //L
+{ currentPalette32 = Ocean_p; currentBlending = LINEARBLEND;
+static uint16_t startIndex = 0;
+startIndex = startIndex + 1; /* motion speed */
+FillLEDsFromPaletteColors32( startIndex);
+
+}
+// ************** Test FastLED.show(); **************
+
+if (key == '*'){
+// ********** Brightness Control **********
+uint8_t min_brightness = 1; // Set a minimum brightness level.
+uint8_t brightness; // Mapped master brightness based on potentiometer reading.
+int potPinA = A0; // Pin for potentiometer B (for brightness)
+int potValA; // Variable to store potentiometer B value (for brightness)
+
+  pinMode(potPinA, INPUT);  // Set pin as an input. 
+    potValA = analogRead(potPinA);  // Read potentiometer B (for brightness).
+    brightness = map(potValA, 1, 1023, min_brightness, MASTER_BRIGHTNESS);
+  FastLED.setBrightness(brightness);  // Set master brightness based on potentiometer position.
+}
+
+// ********* END Brightness Control ***********
+
+// ********* SPEED ***********
+if (key == '#'){
+uint16_t min_RUNSpeed = 1; // Set a minimum speed level.
+uint16_t RUNSpeed = 20; // rate of advance
+uint16_t SpeedRate;
+int potPinS = A4; // Pin for potentiometer S (Speed)
+int potValS; // Variable to store potentiometer value (Speed)
+pinMode(potPinS, INPUT); // Set pin as an input.
+potValS = analogRead(potPinS); // Read potentiometer S (for Speed).
+SpeedRate = map(potValS, 1, 1023, min_RUNSpeed, MASTER_Speed);
+SpeedRate = (SpeedRate + 1); // Set minSpeed Advance
+
+       if (0 <= SpeedRate && SpeedRate < 70)
+      { 
+        SpeedRate = ( SpeedRate / 5);
+      }
+       if (71 <= SpeedRate && SpeedRate < 150)
+      { 
+        SpeedRate = ( SpeedRate / 4);
+      }
+       if (151 <= SpeedRate && SpeedRate < 250)
+      { 
+        SpeedRate = ( SpeedRate / 3   );
+      }           
+       if (251 <= SpeedRate && SpeedRate < 350)
+      { 
+        SpeedRate = ( SpeedRate / 2  );
+      }                    
+       else 
+         {  
+          SpeedRate = SpeedRate;
+         }
+// Serial.println(SpeedRate);
+FastLED.delay(SpeedRate); delay(10);
+FastLED.show(); // Goto LoopFLed2 better responce
+}
+// END KEY Functions ********************************
+// End LoopFLed !!
+}
+// ***** Isolate FastLED.show() Function ********
+//void LoopFLed2(){
+//// ********* SPEED ***********
+// FastLED.show();
+//}
+//// ***** Isolate FastLED.show() Function ********
+
+void FillLEDsFromPaletteColors( uint8_t colorIndex) // Load 16 Color palette
+{
+// uint8_t brightness = 255;
+// Loads color palette
+for( int i = 0; i < NUM_LEDS; i++) {
+leds[i] = ColorFromPalette( currentPalette, colorIndex, MASTER_BRIGHTNESS, currentBlending);
+colorIndex += 3;
+}
+}
+void FillLEDsFromPaletteColors32( uint8_t colorIndex) // Load 32 Color palette
+{
+// uint8_t brightness = 255;
+// Loads color palette(?)
+for( int i = 0; i < NUM_LEDS; i++) {
+leds[i] = ColorFromPalette( currentPalette32, colorIndex, MASTER_BRIGHTNESS, currentBlending);
+colorIndex += 1;
+}
+}
+
+void speedAndBrightnessControl(){
+// ********** Brightness Control **********
+uint8_t min_brightness = 1; // Set a minimum brightness level.
+// Mapped master brightness based on potentiometer reading.
+int potPinA = A0; // Pin for potentiometer B (for brightness)
+int potValA; // Variable to store potentiometer B value (for brightness)
+
+  pinMode(potPinA, INPUT);  // Set pin as an input. 
+    potValA = analogRead(potPinA);  // Read potentiometer B (for brightness).
+    brightness = map(potValA, 1, 1023, min_brightness, MASTER_BRIGHTNESS);
+  FastLED.setBrightness(brightness);  // Set master brightness based on potentiometer position.
+// ********* END Brightness Control ***********
+
+// ********* SPEED ***********
+
+uint16_t min_RUNSpeed = 1;   // Set a minimum speed level.
+uint16_t RUNSpeed = 20;  // rate of advance
+int potPinS = A4;   // Pin for potentiometer S (Speed)
+int potValS;        // Variable to store potentiometer  value (Speed)
+    pinMode(potPinS, INPUT);  // Set pin as an input.
+    potValS = analogRead(potPinS);  // Read potentiometer S (for Speed).
+   SpeedRate = map(potValS, 1, 1023, min_RUNSpeed, MASTER_Speed);
+       SpeedRate = (SpeedRate + 1);  // Set minSpeed Advance
+
+       if (0 <= SpeedRate && SpeedRate < 70)
+      { 
+        SpeedRate = (SpeedRate / 5);
+      }
+       if (71 <= SpeedRate && SpeedRate < 150)
+      { 
+        SpeedRate = (SpeedRate / 4);
+      }
+       if (151 <= SpeedRate && SpeedRate < 250)
+      { 
+        SpeedRate = (SpeedRate / 3   );
+      }           
+       if (251 <= SpeedRate && SpeedRate < 350)
+      { 
+        SpeedRate = (SpeedRate / 2  );
+      }                    
+       else 
+         {  
+          SpeedRate = SpeedRate;
+         }
+// Serial.println(SpeedRate);
+FastLED.delay(SpeedRate);
+FastLED.show(); //Goto LoopFLed2 better responce
+}
