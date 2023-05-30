@@ -1,0 +1,226 @@
+// Here are the first 30 Scenes; the LCD Text/code has changed.
+// Unfortunately, Noah, We can't cut and paste
+// The names should be GOOD & compile. If Not, we can substitute the RGB Hex code, SOURCE:
+// http://9bit.se/snippets/arduino-fastled-library-visual-crgb-struct-reference/
+
+// Here is the LCD Display example for key #1
+
+// Line 1 Scene # 1
+// Line 2 Red
+// Line 3 Dimmer: xx% ~ Possible Values 0%-100%
+// Line 4 Speed: xx% ~ Possible Values 0%-100%
+
+// Key# 1-9
+
+if( convKeyP == 1) {
+fill_solid( leds, NUM_LEDS, CRGB::Red);
+displayPatternForScenes(convKeyP,"Red");
+FastLED.show();
+}
+else if( convKeyP == 2) {
+fill_solid( leds, NUM_LEDS, CRGB::Blue);
+displayPatternForScenes(convKeyP,"Blue");
+FastLED.show();
+}
+else if( convKeyP == 3) {
+fill_solid( leds, NUM_LEDS, CRGB::Orange);
+displayPatternForScenes(convKeyP,"Orange");
+FastLED.show();
+}
+else if( convKeyP == 4) {
+fill_solid( leds, NUM_LEDS, CRGB(0xFFFF20));
+displayPatternForScenes(convKeyP,"Lemon");
+FastLED.show();
+}
+else if( convKeyP == 5) {
+fill_solid( leds, NUM_LEDS, CRGB::Green);
+displayPatternForScenes(convKeyP,"Green");
+FastLED.show();
+}
+else if( convKeyP == 6) {
+fill_solid( leds, NUM_LEDS, CRGB::Cyan);
+displayPatternForScenes(convKeyP,"Cyan");
+FastLED.show();
+}
+else if( convKeyP == 7) {
+fill_solid( leds, NUM_LEDS, CRGB::Purple);
+displayPatternForScenes(convKeyP,"Purple");
+FastLED.show();
+}
+else if( convKeyP == 8) {
+fill_solid( leds, NUM_LEDS, CRGB(0xFF1040));
+displayPatternForScenes(convKeyP,"Magenta");
+FastLED.show();
+}
+else if( convKeyP == 9) {
+fill_solid( leds, NUM_LEDS, CRGB: :White);
+displayPatternForScenes(convKeyP,"White");
+FastLED.show();
+}
+
+// Key # 10-19
+
+else if( convKeyP == 10) {
+fill_solid( leds, NUM_LEDS, CRGB: :DarkOrange);
+displayPatternForScenes(convKeyP,"DarkOrange");
+FastLED.show();
+}
+else if( convKeyP == 11) {
+fill_solid( leds, NUM_LEDS, CRGB: :DeepSkyBlue);
+displayPatternForScenes(convKeyP,"Sky Blue");
+FastLED.show();
+}
+else if( convKeyP == 12) {
+fill_solid( leds, NUM_LEDS, CRGB: :Pink);
+displayPatternForScenes(convKeyP,"Pink");
+FastLED.show();
+}
+else if( convKeyP == 13) {
+fill_solid( leds, NUM_LEDS, CRGB: :HotPink);
+displayPatternForScenes(convKeyP,"HotPinki");
+FastLED.show();
+}
+else if( convKeyP == 14) {
+fill_solid( leds, NUM_LEDS, CRGB: :Gold);
+displayPatternForScenes(convKeyP,"Gold");
+FastLED.show();
+}
+else if( convKeyP == 15) {
+fill_solid( leds, NUM_LEDS, CRGB: :SeaGreen);
+displayPatternForScenes(convKeyP,"Sea Green");
+FastLED.show();
+}
+else if( convKeyP == 16) {
+fill_solid( leds, NUM_LEDS, CRGB: :Tomato);
+displayPatternForScenes(convKeyP,"Tomato");
+FastLED.show();
+}
+else if( convKeyP == 17) {
+fill_solid( leds, NUM_LEDS, CRGB: :Coral);
+displayPatternForScenes(convKeyP,"Coral");
+FastLED.show();
+}
+else if( convKeyP == 18) {
+fill_solid( leds, NUM_LEDS, CRGB: :LimeGreen);
+displayPatternForScenes(convKeyP,"Lime Green");
+FastLED.show();
+}
+else if( convKeyP == 19) {
+fill_solid( leds, NUM_LEDS, CRGB: :PowderBlue);
+displayPatternForScenes(convKeyP,"Powder Blue");
+FastLED.show();
+}
+
+// Key # 20-29
+//Most are filled from Pallets
+// Not sure if the code is correct?
+
+else if( convKeyP == 20) {
+currentPalette = RWB_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+// startIndex = startIndex + 1; /* motion speed / //Remove Chase
+FillLEDsFromPaletteColors( startIndex);
+displayPatternForScenes(convKeyP,"Red White Blue");
+FastLED.show();
+}
+else if( convKeyP == 21) {
+currentPalette32 = FireFG_; currentBlending = LINEARBLEND;
+static uint16_t startIndex = 0;
+// startIndex = startIndex + 1; / motion speed / //Remove Chase
+FillLEDsFromPaletteColors32 ( startIndex);
+displayPatternForScenes(convKeyP,"Fire");
+FastLED.show();
+}
+else if( convKeyP == 22) {
+currentPalette = Irish_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+// startIndex = startIndex + 1; / motion speed / //Remove Chase
+FillLEDsFromPaletteColors( startIndex);
+displayPatternForScenes(convKeyP,"Irish");
+FastLED.show();
+}
+else if( convKeyP == 23) {
+{ currentPalette = RainbowColors_p; currentBlending = LINEARBLEND;
+static uint8_t startIndex = 0;
+// startIndex = startIndex + 1; / motion speed / //Remove Chase
+FillLEDsFromPaletteColors( startIndex);
+displayPatternForScenes(convKeyP,"Rainbow");
+FastLED.show();
+}
+else if( convKeyP == 24) {
+{ currentPalette = myRedBluePalette_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+// startIndex = startIndex + 1; / motion speed / //Remove Chase
+FillLEDsFromPaletteColors( startIndex);
+displayPatternForScenes(convKeyP,"Police");
+FastLED.show();
+}
+else if( convKeyP == 25) {
+{ currentPalette = ForestColors_p; currentBlending = LINEARBLEND;
+static uint8_t startIndex = 0;
+// startIndex = startIndex + 1; / motion speed / //Remove Chase
+FillLEDsFromPaletteColors( startIndex);
+displayPatternForScenes(convKeyP,"Forest");
+FastLED.show();
+}
+else if( convKeyP == 26) {
+currentPalette = RWB_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+// startIndex = startIndex + 1; / motion speed / //Remove Chase
+FillLEDsFromPaletteColors( startIndex);
+displayPatternForScenes(convKeyP,"Red White Blue");
+FastLED.show();
+}
+else if( convKeyP == 27) {
+{ currentPalette = CloudColors_p; currentBlending = LINEARBLEND;
+static uint8_t startIndex = 0;
+// startIndex = startIndex + 1; / motion speed / //Remove Chase
+FillLEDsFromPaletteColors( startIndex);
+displayPatternForScenes(convKeyP,"Cloudy Day");
+FastLED.show();
+}
+else if( convKeyP == 28) {
+{ currentPalette32 = Ocean_p; currentBlending = LINEARBLEND;
+static uint16_t startIndex = 0;
+// startIndex = startIndex + 1; / motion speed / //Remove Chase
+FillLEDsFromPaletteColors32( startIndex);
+displayPatternForScenes(convKeyP,"Ocean Vacation");
+FastLED.show();
+}
+else if( convKeyP == 29) {
+currentPalette = myRedGreenXmassPalette_p; currentBlending = NOBLEND;
+static uint8_t startIndex = 0;
+// startIndex = startIndex + 1; / motion speed */ //Remove Chase
+FillLEDsFromPaletteColors( startIndex);
+displayPatternForScenes(convKeyP,"Christmas");
+FastLED.show();
+}
+
+// ***********************************************
+// Add to the top of the code with the other pallets
+
+extern CRGBPalette16 myRedGreenXmassPalette;
+extern const TProgmemPalette16 myRedGreenXmassPalette_p PROGMEM;
+
+// Add to the bottom of the code with the other pallets
+
+const TProgmemPalette16 myRedGreenXmassPalette_p PROGMEM =
+{
+CRGB::Red,
+CRGB::Green,
+CRGB::Red,
+
+CRGB::Green,
+CRGB::Red,
+CRGB::Green,
+CRGB::Red,
+
+CRGB::Red,
+CRGB::Green,
+CRGB::Red,
+CRGB::Green,
+CRGB::Red,
+CRGB::Green,
+CRGB::Red,
+CRGB::Green,
+};
