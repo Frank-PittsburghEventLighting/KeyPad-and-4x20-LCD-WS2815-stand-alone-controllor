@@ -21,4 +21,5 @@ I have been using FastLED and a repurposed and gutted ADJ LED Controller (RGBW4C
 https://github.com/Frank-PittsburghEventLighting/LED-Arsenal-2023/blob/main/LED-Arsenal-2023
 https://www.reddit.com/r/FastLED/comments/ta0ipv/24keypad_plus_4x4_matrix_16keypad_two_1602lcd_to/
 
-A keypad and display are my best options to simplify operation and flexibility. WLED will not work, FastLED is my best choice. If possible, it would be great to have a verbal chat and conversation with you for help & guidance. There are too many options and technical details for written communication.   LED pixel number future Bluetooth & network support
+A keypad and display are my best options to simplify operation and flexibility. WLED will not work, FastLED is my best choice. If possible.
+LED pixel number future Bluetooth & network support
