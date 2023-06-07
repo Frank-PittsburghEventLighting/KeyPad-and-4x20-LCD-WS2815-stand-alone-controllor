@@ -65,7 +65,7 @@ byte colPins[COLS] = {11, 12, 13};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 // LCD setup
-LiquidCrystal_I2C lcd(0x20,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 20 chars and 4 line display
 
 void setup() {
   pinMode (brightnessDownPin, INPUT_PULLUP);
